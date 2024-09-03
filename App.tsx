@@ -1,118 +1,76 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- */
+import React, {useState,useEffect} from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {NavigationContainer} from '@react-navigation/native';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import AddContactScreen from './app/screens/AddContact';
+import ShowContactScreen from './app/screens/ShowContact';
+const Tab = createBottomTabNavigator();
 
-import React from 'react';
-import type {PropsWithChildren} from 'react';
-import {
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native';
-
-import {
-  Colors,
-  DebugInstructions,
-  Header,
-  LearnMoreLinks,
-  ReloadInstructions,
-} from 'react-native/Libraries/NewAppScreen';
-
-type SectionProps = PropsWithChildren<{
-  title: string;
-}>;
-
-function Section({children, title}: SectionProps): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
-  return (
-    <View style={styles.sectionContainer}>
-      <Text
-        style={[
-          styles.sectionTitle,
-          {
-            color: isDarkMode ? Colors.white : Colors.black,
-          },
-        ]}>
-        {title}
-      </Text>
-      <Text
-        style={[
-          styles.sectionDescription,
-          {
-            color: isDarkMode ? Colors.light : Colors.dark,
-          },
-        ]}>
-        {children}
-      </Text>
-    </View>
-  );
+interface Contact {
+  name: string;
+  phone: string;
 }
 
-function App(): React.JSX.Element {
-  const isDarkMode = useColorScheme() === 'dark';
+const App = () => {
+  const [contacts, setContacts] = useState<Contact[]>([]);
 
-  const backgroundStyle = {
-    backgroundColor: isDarkMode ? Colors.darker : Colors.lighter,
+
+
+  useEffect(() => {
+    const loadContacts = async () => {
+      try {
+        const storedContacts = await AsyncStorage.getItem('contacts');
+        if (storedContacts) {
+          setContacts(JSON.parse(storedContacts));
+        }
+      } catch (e) {
+        console.error('Error retrieving contacts', e);
+      }
+    };
+
+    loadContacts();
+    
+  }, []);
+
+
+  const addContact = async (name: string, phone: string) => {
+    const NewContacts =  [...contacts, {name, phone}];
+    setContacts(NewContacts);
+    try {
+      await AsyncStorage.setItem('contacts', JSON.stringify(NewContacts));
+    } catch (e) {
+      console.error('Error saving contacts', e);
+    }
   };
 
   return (
-    <SafeAreaView style={backgroundStyle}>
-      <StatusBar
-        barStyle={isDarkMode ? 'light-content' : 'dark-content'}
-        backgroundColor={backgroundStyle.backgroundColor}
-      />
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        style={backgroundStyle}>
-        <Header />
-        <View
-          style={{
-            backgroundColor: isDarkMode ? Colors.black : Colors.white,
+    <NavigationContainer>
+      <Tab.Navigator
+        screenOptions={{
+          tabBarActiveTintColor: 'blue',
+          tabBarInactiveTintColor: 'gray',
+          tabBarStyle: {position: 'absolute'},
+          headerShown: false,
+        }}>
+        <Tab.Screen
+          name="Add Contact"
+          options={{
+            tabBarIcon: () => <Icon name="home" size={30} color="black" />,
           }}>
-          <Section title="Step One">
-            Edit <Text style={styles.highlight}>App.tsx</Text> to change this
-            screen and then come back to see your edits.
-          </Section>
-          <Section title="See Your Changes">
-            <ReloadInstructions />
-          </Section>
-          <Section title="Debug">
-            <DebugInstructions />
-          </Section>
-          <Section title="Learn More">
-            Read the docs to discover what to do next:
-          </Section>
-          <LearnMoreLinks />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
-  );
-}
+          {props => <AddContactScreen {...props} addContact={addContact} />}
+        </Tab.Screen>
 
-const styles = StyleSheet.create({
-  sectionContainer: {
-    marginTop: 32,
-    paddingHorizontal: 24,
-  },
-  sectionTitle: {
-    fontSize: 24,
-    fontWeight: '600',
-  },
-  sectionDescription: {
-    marginTop: 8,
-    fontSize: 18,
-    fontWeight: '400',
-  },
-  highlight: {
-    fontWeight: '700',
-  },
-});
+        <Tab.Screen
+          name="Show Contacts"
+          options={{
+            tabBarIcon: () => <Icon name="home" size={30} color="black" />,
+          }}>
+          {props => <ShowContactScreen {...props} contacts={contacts} />}
+        </Tab.Screen>
+      </Tab.Navigator>
+    </NavigationContainer>
+  );
+};
 
 export default App;
