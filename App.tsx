@@ -3,8 +3,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {NavigationContainer} from '@react-navigation/native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import AddContactScreen from './app/screens/AddContact';
-import ShowContactScreen from './app/screens/ShowContact';
+import AddContactScreen from './src/screens/AddContact/index';
+import ShowContactScreen from './src/screens/ShowContact/index';
 const Tab = createBottomTabNavigator();
 
 interface Contact {
